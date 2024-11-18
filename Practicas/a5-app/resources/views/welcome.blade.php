@@ -45,7 +45,11 @@
                                 <td>{{ $fichero->created_at }}</td>
                                 <td>{{ $fichero->updated_at }}</td>
                                 <td>
-                                    <a href="/download/{{ $fichero->id }}" class="btn btn-primary">Descargar</a>
+                                    @if(Storage::exists($fichero->path))
+                                        <a href="/download/{{ $fichero->id }}" class="btn btn-primary">Descargar</a>
+                                    @else
+                                        <button class="btn btn-secondary" disabled>No disponible</button>
+                                    @endif
                                     @if($fichero->user_id == Auth::id())
                                         <a href="/delete/{{ $fichero->id }}" class="btn btn-danger">Eliminar</a>
                                     @endif
@@ -78,7 +82,11 @@
                                 <td>{{ $fichero->created_at }}</td>
                                 <td>{{ $fichero->updated_at }}</td>
                                 <td>
-                                    <a href="/download/{{ $fichero->id }}" class="btn btn-primary">Descargar</a>
+                                    @if(Storage::exists($fichero->path))
+                                        <a href="/download/{{ $fichero->id }}" class="btn btn-primary">Descargar</a>
+                                    @else
+                                        <button class="btn btn-secondary" disabled>No disponible</button>
+                                    @endif
                                     <a href="/delete/{{ $fichero->id }}" class="btn btn-danger">Eliminar</a>
                                 </td>
                             </tr>
@@ -151,3 +159,4 @@
         });
     </script>
 @endsection
+

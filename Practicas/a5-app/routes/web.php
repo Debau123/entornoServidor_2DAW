@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB; // Uso correcto de DB
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use PhpOffice\PhpWord\PhpWord;
@@ -18,13 +18,19 @@ use PhpOffice\PhpWord\IOFactory;
 Route::get('/', function (Request $request) {
     $search = $request->input('search');
 
-    // Ficheros no eliminados
-    $ficheros = Fichero::when($search, function ($query, $search) {
-        return $query->where('name', 'LIKE', '%' . $search . '%');
-    })->get();
+    // Consulta para archivos activos
+    $ficheros = Fichero::whereNull('deleted_at')
+        ->when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', '%' . $search . '%');
+        })
+        ->get();
 
-    // Ficheros eliminados (SoftDeletes)
-    $archivosEliminados = Fichero::onlyTrashed()->get();
+    // Consulta para archivos eliminados (Soft Deletes)
+    $archivosEliminados = Fichero::onlyTrashed()
+        ->when($search, function ($query, $search) {
+            return $query->where('name', 'LIKE', '%' . $search . '%');
+        })
+        ->get();
 
     return view('welcome')->with([
         'ficheros' => $ficheros,
@@ -32,7 +38,6 @@ Route::get('/', function (Request $request) {
         'search' => $search
     ]);
 });
-
 
 // Login
 Route::get('/login', function () {
@@ -100,6 +105,10 @@ Route::middleware('auth')->group(function () {
 
     // Descargas y registro
     Route::get('/download/{file}', function (Fichero $file) {
+        if (!Storage::exists($file->path)) {
+            return redirect('/')->withErrors(['El archivo no está disponible físicamente.']);
+        }
+
         $file->increment('descargas');
 
         DB::table('descargas')->insert([
@@ -112,12 +121,13 @@ Route::middleware('auth')->group(function () {
         return Storage::download($file->path, $file->name);
     })->name('download');
 
+    // Soft delete
     Route::get('/delete/{file}', function (Fichero $file) {
-        Storage::delete($file->path);
-        Fichero::destroy($file->id);
-        return redirect("/");
+        $file->delete(); // Solo marca el archivo como eliminado (Soft Delete)
+        return redirect('/')->with('status', 'Archivo eliminado temporalmente.');
     });
 
+    // Actualización de archivos
     Route::put('/archivo/{id}', function (Request $request, $id) {
         $fichero = Fichero::findOrFail($id);
 
@@ -161,10 +171,32 @@ Route::get('/archivo/{id}', function ($id) {
 // Generar QR de descarga
 Route::get('/qr/download/{id}', function ($id) {
     $fichero = Fichero::findOrFail($id);
+    if (!Storage::exists($fichero->path)) {
+        return redirect('/')->withErrors(['El archivo no está disponible para generar el QR.']);
+    }
     $url = route('download', ['file' => $fichero->id]);
     return QrCode::size(300)->generate($url);
 })->name('qr.download');
 
+// Restaurar archivo eliminado
+Route::get('/restore/{id}', function ($id) {
+    $fichero = Fichero::onlyTrashed()->findOrFail($id);
+    $fichero->restore(); // Restaura solo en la base de datos
+    return redirect('/')->with('status', 'Archivo restaurado correctamente.');
+})->name('restore');
+
+// Eliminar permanentemente archivo
+Route::get('/force-delete/{id}', function ($id) {
+    $fichero = Fichero::onlyTrashed()->findOrFail($id);
+
+    // Elimina el archivo físicamente si existe
+    if (Storage::exists($fichero->path)) {
+        Storage::delete($fichero->path);
+    }
+
+    $fichero->forceDelete(); // Elimina permanentemente la entrada en la base de datos
+    return redirect('/')->with('status', 'Archivo eliminado permanentemente.');
+})->name('force-delete');
 // Ver PDF
 Route::get('/ver-pdf/{id}', function ($id) {
     $fichero = Fichero::findOrFail($id);
@@ -175,22 +207,10 @@ Route::get('/ver-pdf/{id}', function ($id) {
 
     $filePath = Storage::path($fichero->path);
 
-    if (!file_exists($filePath)) {
+    if (!Storage::exists($fichero->path)) {
         abort(404, 'El archivo no existe.');
     }
 
     return response()->file($filePath);
 })->name('ver.pdf');
-// Restaurar archivo eliminado
-Route::get('/restore/{id}', function ($id) {
-    $fichero = Fichero::onlyTrashed()->findOrFail($id);
-    $fichero->restore();
-    return redirect('/')->with('status', 'Archivo restaurado correctamente.');
-})->name('restore');
-
-// Eliminar permanentemente archivo
-Route::get('/force-delete/{id}', function ($id) {
-    $fichero = Fichero::onlyTrashed()->findOrFail($id);
-    $fichero->forceDelete();
-    return redirect('/')->with('status', 'Archivo eliminado permanentemente.');
-})->name('force-delete');
+code .

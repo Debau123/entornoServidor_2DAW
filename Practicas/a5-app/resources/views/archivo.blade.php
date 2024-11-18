@@ -11,7 +11,14 @@
         <div class="card mt-4 archivo-card" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; align-items: center; text-align: center;">
             <!-- Información general -->
             <div class="card-body">
-                <p><strong>Size:</strong> {{ Storage::size($fichero->path) }} bytes</p>
+                <p>
+                    <strong>Size:</strong> 
+                    @if (Storage::exists($fichero->path))
+                        {{ Storage::size($fichero->path) }} bytes
+                    @else
+                        Archivo no disponible
+                    @endif
+                </p>
                 <p><strong>Owner:</strong> {{ $fichero->user->name }}</p>
                 <p><strong>Created at:</strong> {{ $fichero->created_at->format('d-m-Y H:i') }}</p>
                 <p><strong>Updated at:</strong> {{ $fichero->updated_at->format('d-m-Y H:i') }}</p>
@@ -19,7 +26,11 @@
                 <!-- Contador de descargas -->
                 <p><strong>Descargas:</strong> {{ $fichero->descargas }}</p>
 
-                <a href="/download/{{ $fichero->id }}" class="btn btn-primary archivo-descargar">Descargar</a>
+                @if (Storage::exists($fichero->path))
+                    <a href="/download/{{ $fichero->id }}" class="btn btn-primary archivo-descargar">Descargar</a>
+                @else
+                    <button class="btn btn-secondary" disabled>No disponible</button>
+                @endif
             </div>
 
             <!-- Gráfico de descargas -->
@@ -31,12 +42,16 @@
             <!-- Generar y mostrar el QR -->
             <div class="qr-code">
                 <h5>Descargar mediante QR</h5>
-                <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->generate(route('download', ['file' => $fichero->id]))) }}" alt="QR para descargar archivo">
+                @if (Storage::exists($fichero->path))
+                    <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->generate(route('download', ['file' => $fichero->id]))) }}" alt="QR para descargar archivo">
+                @else
+                    <p>QR no disponible</p>
+                @endif
             </div>
         </div>
 
         <!-- Editor de documentos -->
-        @if(Str::endsWith($fichero->name, ['.txt', '.md', '.docx', '.pdf']))
+        @if(Str::endsWith($fichero->name, ['.txt', '.md', '.docx', '.pdf']) && Storage::exists($fichero->path))
             <form action="{{ route('archivo.update', ['id' => $fichero->id]) }}" method="POST" style="margin-top: 20px;">
                 @csrf
                 @method('PUT')
