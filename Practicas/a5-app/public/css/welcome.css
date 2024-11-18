@@ -1,0 +1,163 @@
+
+/* Estilos generales */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9fafb;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+
+/* Estilo para la cabecera de autenticación */
+div[style*="background-color: orange"] {
+    padding: 1rem;
+    color: white;
+    font-size: 1.1rem;
+    background-color: #f97316;
+}
+
+/* Enlace de autenticación */
+div[style*="background-color: orange"] a {
+    color: white;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+/* Botón de subida de archivos */
+form input[type="file"],
+form input[type="submit"] {
+    margin-top: 10px;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+}
+
+form input[type="submit"] {
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+form input[type="submit"]:hover {
+    background-color: #2563eb;
+}
+
+/* Estilo para mensajes de error */
+.error-message {
+    color: red;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
+/* Tabla */
+table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-top: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border-radius: 8px;
+    background-color: white;
+}
+
+/* Encabezado de la tabla */
+th {
+    background-color: #3b82f6;
+    color: white;
+    font-weight: bold;
+    padding: 12px;
+    text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+/* Celdas */
+td {
+    padding: 12px;
+    border-bottom: 1px solid #e5e7eb;
+    font-size: 14px;
+}
+
+/* Hover para filas */
+tr:hover td {
+    background-color: #f1f5f9;
+}
+
+/* Estilo para los enlaces dentro de la tabla */
+a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Iconos de acción */
+td svg {
+    vertical-align: middle;
+}
+/* welcome.css */
+a.button {
+    text-decoration: none;
+    color: white;
+    background-color: #333;
+    padding: 0.5em 1em;
+    border-radius: 5px;
+    margin: 0 0.5em;
+}
+
+h1 {
+    font-size: 1.5em;
+    color: white;
+}
+.btn-borrar {
+    color: white;
+    background-color: red;
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-borrar:hover {
+    background-color: darkred;
+}
+
+.file-navbar {
+    display: flex;
+    width: 100%;
+    justify-content: center;
+}
+
+.nav-btn {
+    padding: 10px 20px;
+    margin: 0 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    color: #333;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.nav-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.nav-btn:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.tab-pane {
+    margin-top: 20px;
+}

@@ -1,0 +1,52 @@
+/* archivo.css */
+
+/* T\u00edtulo del archivo */
+
+.archivo-titulo {
+    font-size: 2em;
+    font-weight: bold;
+    color: #333;
+    margin-top: 20px;
+}
+
+/* Estilo de la tarjeta */
+.archivo-card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    border: none;
+    overflow: hidden;
+    background-color: #3f3e40;
+}
+
+/* Cuerpo de la tarjeta */
+.card-body {
+    padding: 20px;
+}
+
+/* Bot\u00f3n de descarga */
+.archivo-descargar {
+    text-decoration: none;
+    color: white;
+    background-color: #007bff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.archivo-descargar:hover {
+    background-color: #0056b3;
+}
+
+/* Bot\u00f3n de inicio */
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
