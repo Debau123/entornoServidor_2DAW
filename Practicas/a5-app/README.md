@@ -1,66 +1,137 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Documentación del Proyecto Laravel
 
-## About Laravel
+Este proyecto Laravel gestiona usuarios, archivos y estadísticas de descargas. Está estructurado con rutas, vistas, migraciones y funcionalidades personalizadas. A continuación, se describe cada componente con detalles técnicos y decisiones de diseño.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## **Rutas (`routes/web.php`)**
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. `/` (GET)
+- **Funcionalidad**: Muestra la página principal (`welcome.blade.php`) con una lista de archivos disponibles, permitiendo buscar por nombre.
+- **Tecnologías utilizadas**:
+  - **Eloquent ORM**: Para consultar la base de datos de archivos con filtros dinámicos.
+  - **Blade Templates**: Renderiza la vista `welcome` con los datos de los archivos.
+- **Por qué se eligió**: Eloquent simplifica las consultas y permite un código limpio con su funcionalidad `when()`.
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### 2. `/login` (GET/POST)
+- **GET**:
+  - Muestra el formulario de inicio de sesión.
+  - Utiliza la vista `login.blade.php`.
+- **POST**:
+  - Valida las credenciales del usuario y autentica su sesión usando `Auth::attempt`.
+- **Tecnologías utilizadas**:
+  - **Middleware de autenticación**: Laravel gestiona sesiones y cookies.
+  - **Form Request Validation**: Simplifica la validación de credenciales.
+- **Por qué se eligió**: Laravel Breeze fue la base inicial para la gestión de usuarios.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 3. `/logout` (GET)
+- **Funcionalidad**: Finaliza la sesión del usuario y regenera el token CSRF.
+- **Tecnologías utilizadas**:
+  - **Auth Facade**: Permite cerrar sesión de forma segura.
+- **Por qué se eligió**: Laravel gestiona la seguridad de las sesiones automáticamente.
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 4. `/register` (GET/POST)
+- **GET**:
+  - Muestra el formulario de registro.
+- **POST**:
+  - Registra un nuevo usuario en la base de datos.
+  - Cifra la contraseña con `Hash::make`.
+- **Tecnologías utilizadas**:
+  - **Eloquent**: Facilita la creación de nuevos usuarios.
+  - **Request Validation**: Garantiza la validez de los datos de entrada.
+- **Por qué se eligió**: Laravel proporciona herramientas nativas para la gestión de usuarios.
 
-### Premium Partners
+---
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 5. `/subir-archivos` (GET/POST)
+- **GET**:
+  - Muestra la vista `upload.blade.php` con un formulario para subir archivos.
+- **POST**:
+  - Sube archivos al directorio `public/storage` y los asocia al usuario autenticado.
+  - Sanitiza el nombre del archivo usando expresiones regulares.
+- **Tecnologías utilizadas**:
+  - **Storage Facade**: Gestiona la subida de archivos al sistema de almacenamiento.
+  - **Blade Templates**: Renderiza la vista.
+- **Por qué se eligió**: Laravel simplifica la gestión de archivos con el sistema de almacenamiento.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 6. `/download/{file}` (GET)
+- **Funcionalidad**:
+  - Incrementa el contador de descargas en la tabla `ficheroes`.
+  - Registra cada descarga en la tabla `descargas` con la fecha.
+  - Descarga el archivo solicitado.
+- **Tecnologías utilizadas**:
+  - **Eloquent**: Incrementa el contador.
+  - **DB Facade**: Inserta datos en la tabla `descargas`.
+  - **Storage Facade**: Devuelve el archivo para descarga.
+- **Por qué se eligió**: Separar el registro de descargas en otra tabla permite analizar estadísticas fácilmente.
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### 7. `/delete/{file}` (GET)
+- **Funcionalidad**:
+  - Elimina un archivo del sistema y su registro en la base de datos.
+- **Tecnologías utilizadas**:
+  - **Storage Facade**: Borra el archivo físico.
+  - **Eloquent**: Elimina el registro asociado en la tabla.
+- **Por qué se eligió**: Garantiza que no queden archivos huérfanos en el sistema.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 8. `/archivo/{id}` (GET)
+- **Funcionalidad**:
+  - Muestra detalles del archivo, como el propietario, tamaño, estadísticas de descargas y un gráfico.
+  - Genera un QR para descargar el archivo.
+- **Tecnologías utilizadas**:
+  - **Chart.js**: Renderiza el gráfico de descargas por día.
+  - **QrCode**: Genera el QR dinámicamente.
+  - **Eloquent**: Consulta el archivo y las estadísticas asociadas.
+- **Por qué se eligió**: Estas herramientas simplifican la presentación de datos de forma visual y atractiva.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 9. `/qr/download/{id}` (GET)
+- **Funcionalidad**: Genera un QR para descargar el archivo directamente.
+- **Tecnologías utilizadas**:
+  - **QrCode Package**: Genera el código QR.
+- **Por qué se eligió**: Ofrece una forma rápida de compartir el enlace de descarga.
+
+---
+
+### 10. `/ver-pdf/{id}` (GET)
+- **Funcionalidad**:
+  - Muestra un archivo PDF incrustado en la vista.
+- **Tecnologías utilizadas**:
+  - **Storage Facade**: Gestiona la ruta del archivo.
+  - **Response Helper**: Devuelve el archivo como respuesta.
+- **Por qué se eligió**: Garantiza que el PDF sea visualizado directamente sin necesidad de descargarlo.
+
+---
+
+## **Vistas**
+1. **`welcome.blade.php`**: Muestra la lista de archivos con un buscador dinámico.
+2. **`login.blade.php`**: Formulario de inicio de sesión.
+3. **`register.blade.php`**: Formulario de registro de nuevos usuarios.
+4. **`upload.blade.php`**: Formulario para subir archivos.
+5. **`archivo.blade.php`**: Vista detallada de un archivo con estadísticas de descargas.
+
+---
+
+## **Migraciones**
+1. **`create_users_table`**: Define la tabla de usuarios con campos para nombre, correo y contraseña.
+2. **`create_ficheroes_table`**: Define la tabla de archivos, incluyendo campos como nombre, tamaño, ruta y contador de descargas.
+3. **`add_privado_to_ficheroes_table`**: Añade un campo para distinguir archivos privados de públicos.
+4. **`create_descargas_table`**: Registra cada descarga con el ID del archivo y la fecha.
+
+---
+
+## **Conclusión**
+Este proyecto combina funcionalidades avanzadas de Laravel con herramientas adicionales como Chart.js y QrCode para gestionar archivos y estadísticas de forma eficiente y visual. El diseño modular permite futuras extensiones, como filtros avanzados o integración con APIs externas.
