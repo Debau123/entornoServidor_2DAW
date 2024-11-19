@@ -50,6 +50,22 @@
             </div>
         </div>
 
+        <!-- Usuarios con los que se ha compartido el archivo -->
+        <div class="card mt-4 archivo-card">
+            <div class="card-body">
+                <h5>Compartido con:</h5>
+                @if($fichero->sharedUsers->isEmpty())
+                    <p>Este archivo no se ha compartido con nadie.</p>
+                @else
+                    <ul>
+                        @foreach($fichero->sharedUsers as $user)
+                            <li>{{ $user->name }}</li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </div>
+
         <!-- Editor de documentos -->
         @if(Str::endsWith($fichero->name, ['.txt', '.md', '.docx', '.pdf']) && Storage::exists($fichero->path))
             <form action="{{ route('archivo.update', ['id' => $fichero->id]) }}" method="POST" style="margin-top: 20px;">

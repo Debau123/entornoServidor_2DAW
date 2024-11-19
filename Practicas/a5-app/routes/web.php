@@ -213,4 +213,3 @@ Route::get('/ver-pdf/{id}', function ($id) {
 
     return response()->file($filePath);
 })->name('ver.pdf');
-code .
