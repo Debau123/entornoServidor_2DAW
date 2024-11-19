@@ -28,4 +28,12 @@ class Fichero extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Relación con los usuarios con los que se ha compartido el archivo.
+     */
+    public function sharedUsers()
+    {
+        return $this->belongsToMany(User::class, 'shared_files', 'fichero_id', 'user_id')->withTimestamps();
+    }
 }

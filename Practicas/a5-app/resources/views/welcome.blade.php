@@ -18,6 +18,7 @@
         <div class="file-navbar mt-4 mb-2">
             <button id="todos-archivos-tab" class="nav-btn active">Archivos de la comunidad</button>
             <button id="mis-archivos-tab" class="nav-btn">Mis Archivos</button>
+            <button id="archivos-compartidos-tab" class="nav-btn">Archivos Compartidos</button>
             <button id="archivos-eliminados-tab" class="nav-btn">Archivos Eliminados</button>
         </div>
 
@@ -71,6 +72,7 @@
                             <th>Created at</th>
                             <th>Updated at</th>
                             <th>Action</th>
+                            <th>Compartir</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,6 +90,55 @@
                                         <button class="btn btn-secondary" disabled>No disponible</button>
                                     @endif
                                     <a href="/delete/{{ $fichero->id }}" class="btn btn-danger">Eliminar</a>
+                                </td>
+                                <td>
+                                    <form action="{{ route('compartir.archivo', ['id' => $fichero->id]) }}" method="POST">
+                                        @csrf
+                                        <select name="user_id" required>
+                                            <option value="" disabled selected>Seleccionar usuario</option>
+                                            @foreach($usuarios as $usuario)
+                                                @if($usuario->id !== Auth::id() && !$fichero->sharedUsers->contains($usuario->id))
+                                                    <option value="{{ $usuario->id }}">{{ $usuario->name }}</option>
+                                                @endif
+                                            @endforeach
+                                        </select>
+                                        <button type="submit" class="btn btn-success">Compartir</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Archivos Compartidos -->
+            <div class="tab-pane" id="archivos-compartidos" style="display: none;">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Owner</th>
+                            <th>Shared At</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($archivosCompartidos as $archivo)
+                            <tr>
+                                <td><a href="/archivo/{{ $fichero->id }}">{{ $fichero->name }}</a></td>
+                                <td>{{ $archivo->owner_name }}</td>
+                                <td>{{ $archivo->shared_at }}</td>
+                                <td>
+                                    @if(Storage::exists($archivo->path))
+                                        <a href="/download/{{ $archivo->id }}" class="btn btn-primary">Descargar</a>
+                                    @else
+                                        <button class="btn btn-secondary" disabled>No disponible</button>
+                                    @endif
+                                    <form action="{{ route('eliminar.compartido', ['id' => $archivo->id]) }}" method="POST" style="display: inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
@@ -126,37 +177,29 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            const todosArchivosTab = document.getElementById('todos-archivos-tab');
-            const misArchivosTab = document.getElementById('mis-archivos-tab');
-            const archivosEliminadosTab = document.getElementById('archivos-eliminados-tab');
-            const todosArchivosPane = document.getElementById('todos-archivos');
-            const misArchivosPane = document.getElementById('mis-archivos');
-            const archivosEliminadosPane = document.getElementById('archivos-eliminados');
+            const tabs = {
+                'todos-archivos-tab': 'todos-archivos',
+                'mis-archivos-tab': 'mis-archivos',
+                'archivos-compartidos-tab': 'archivos-compartidos',
+                'archivos-eliminados-tab': 'archivos-eliminados',
+            };
 
-            // Función para manejar el cambio de pestañas
-            function switchTab(activeTab, inactiveTabs, activePane, inactivePanes) {
-                activeTab.classList.add('active');
-                inactiveTabs.forEach(tab => tab.classList.remove('active'));
-                activePane.style.display = 'block';
-                inactivePanes.forEach(pane => (pane.style.display = 'none'));
-            }
-
-            // Inicialmente mostrar "Todos los Archivos"
-            switchTab(todosArchivosTab, [misArchivosTab, archivosEliminadosTab], todosArchivosPane, [misArchivosPane, archivosEliminadosPane]);
-
-            // Event listener para las pestañas
-            todosArchivosTab.addEventListener('click', function () {
-                switchTab(todosArchivosTab, [misArchivosTab, archivosEliminadosTab], todosArchivosPane, [misArchivosPane, archivosEliminadosPane]);
-            });
-
-            misArchivosTab.addEventListener('click', function () {
-                switchTab(misArchivosTab, [todosArchivosTab, archivosEliminadosTab], misArchivosPane, [todosArchivosPane, archivosEliminadosPane]);
-            });
-
-            archivosEliminadosTab.addEventListener('click', function () {
-                switchTab(archivosEliminadosTab, [todosArchivosTab, misArchivosTab], archivosEliminadosPane, [todosArchivosPane, misArchivosPane]);
+            Object.keys(tabs).forEach(tabId => {
+                const tab = document.getElementById(tabId);
+                tab.addEventListener('click', function () {
+                    Object.keys(tabs).forEach(otherTabId => {
+                        const otherTab = document.getElementById(otherTabId);
+                        const otherPane = document.getElementById(tabs[otherTabId]);
+                        if (tabId === otherTabId) {
+                            otherTab.classList.add('active');
+                            otherPane.style.display = 'block';
+                        } else {
+                            otherTab.classList.remove('active');
+                            otherPane.style.display = 'none';
+                        }
+                    });
+                });
             });
         });
     </script>
 @endsection
-

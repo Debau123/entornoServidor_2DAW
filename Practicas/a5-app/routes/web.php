@@ -1,215 +1,47 @@
 <?php
 
-use App\Http\Requests\RegisterRequest;
-use App\Models\Fichero;
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Hash;
+// Archivo web.php actualizado
+
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use PhpOffice\PhpWord\PhpWord;
-use PhpOffice\PhpWord\IOFactory;
+use App\Http\Controllers\FileController;
+use App\Http\Controllers\AuthController;
 
 // Ruta principal con búsqueda de archivos
-Route::get('/', function (Request $request) {
-    $search = $request->input('search');
+Route::get('/', [FileController::class, 'index']);
 
-    // Consulta para archivos activos
-    $ficheros = Fichero::whereNull('deleted_at')
-        ->when($search, function ($query, $search) {
-            return $query->where('name', 'LIKE', '%' . $search . '%');
-        })
-        ->get();
-
-    // Consulta para archivos eliminados (Soft Deletes)
-    $archivosEliminados = Fichero::onlyTrashed()
-        ->when($search, function ($query, $search) {
-            return $query->where('name', 'LIKE', '%' . $search . '%');
-        })
-        ->get();
-
-    return view('welcome')->with([
-        'ficheros' => $ficheros,
-        'archivosEliminados' => $archivosEliminados,
-        'search' => $search
-    ]);
-});
+// Para eliminar archivos compartidos
+Route::delete('/eliminar-compartido/{id}', [FileController::class, 'deleteShared'])->name('eliminar.compartido')->middleware('auth');
 
 // Login
-Route::get('/login', function () {
-    return view('login');
-});
-
-Route::post('/login', function (Request $request) {
-    $credentials = $request->validate([
-        'email' => ['required', 'email'],
-        'password' => ['required'],
-    ]);
-
-    if (Auth::attempt($credentials)) {
-        $request->session()->regenerate();
-        return redirect()->intended('/');
-    }
-
-    return back()->withErrors([
-        'email' => 'The provided credentials do not match our records.',
-    ])->onlyInput('email');
-});
+Route::get('/login', [AuthController::class, 'showLoginForm']);
+Route::post('/login', [AuthController::class, 'login']);
 
 // Logout
-Route::get('/logout', function (Request $request) {
-    Auth::logout();
-    $request->session()->invalidate();
-    $request->session()->regenerateToken();
-    return redirect('/');
-});
+Route::get('/logout', [AuthController::class, 'logout']);
 
 // Register
-Route::get('/register', function () {
-    return view('register');
-});
-
-Route::post('/register', function (RegisterRequest $request) {
-    $data = $request->validated();
-    $user = new User();
-    $user->name = $data['name'];
-    $user->email = $data['email'];
-    $user->password = Hash::make($data['password']);
-    $user->save();
-    return redirect('/')->with('status', 'Registro exitoso. Ahora puedes iniciar sesión.');
-});
+Route::get('/register', [AuthController::class, 'showRegisterForm']);
+Route::post('/register', [AuthController::class, 'register']);
 
 // Subida de archivos
-Route::get('/subir-archivos', function () {
-    return view('upload');
-})->middleware('auth');
+Route::get('/subir-archivos', [FileController::class, 'showUploadForm'])->middleware('auth');
 
 Route::middleware('auth')->group(function () {
-    Route::post('/upload', function (Request $request) {
-        $file = $request->file('uploaded_file');
-        $safeName = preg_replace('/[^A-Za-z0-9_\-\.]/', '_', $file->getClientOriginalName());
-
-        $fichero = new Fichero();
-        $fichero->path = $file->storeAs('public', $safeName);
-        $fichero->name = $safeName;
-        $fichero->user_id = Auth::id();
-        $fichero->privado = $request->has('privado');
-        $fichero->save();
-
-        return redirect('/')->with('status', 'Archivo subido correctamente.');
-    });
-
-    // Descargas y registro
-    Route::get('/download/{file}', function (Fichero $file) {
-        if (!Storage::exists($file->path)) {
-            return redirect('/')->withErrors(['El archivo no está disponible físicamente.']);
-        }
-
-        $file->increment('descargas');
-
-        DB::table('descargas')->insert([
-            'fichero_id' => $file->id,
-            'fecha' => now()->format('Y-m-d'),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        return Storage::download($file->path, $file->name);
-    })->name('download');
-
-    // Soft delete
-    Route::get('/delete/{file}', function (Fichero $file) {
-        $file->delete(); // Solo marca el archivo como eliminado (Soft Delete)
-        return redirect('/')->with('status', 'Archivo eliminado temporalmente.');
-    });
-
-    // Actualización de archivos
-    Route::put('/archivo/{id}', function (Request $request, $id) {
-        $fichero = Fichero::findOrFail($id);
-
-        if (Str::endsWith($fichero->name, ['.txt', '.md'])) {
-            Storage::put($fichero->path, $request->input('content'));
-        } elseif (Str::endsWith($fichero->name, ['.docx'])) {
-            $tempPath = Storage::path($fichero->path);
-            $phpWord = new PhpWord();
-            $section = $phpWord->addSection();
-            $section->addText($request->input('content'));
-
-            $objWriter = IOFactory::createWriter($phpWord, 'Word2007');
-            $objWriter->save($tempPath);
-        }
-
-        return redirect()->back()->with('status', 'Archivo actualizado correctamente.');
-    })->name('archivo.update');
+    Route::post('/upload', [FileController::class, 'upload']);
+    Route::get('/download/{file}', [FileController::class, 'download'])->name('download');
+    Route::get('/delete/{file}', [FileController::class, 'softDelete']);
+    Route::get('/restore/{id}', [FileController::class, 'restore'])->name('restore');
+    Route::get('/force-delete/{id}', [FileController::class, 'forceDelete'])->name('force-delete');
 });
 
 // Vista individual del archivo
-Route::get('/archivo/{id}', function ($id) {
-    $fichero = Fichero::findOrFail($id);
+Route::get('/archivo/{id}', [FileController::class, 'show'])->name('archivo.view');
 
-    if ($fichero->privado && $fichero->user_id != Auth::id()) {
-        return redirect('/')->withErrors(['Archivo no encontrado o no tienes permisos para verlo.']);
-    }
+// Compartir archivos
+Route::post('/compartir/{id}', [FileController::class, 'share'])->name('compartir.archivo')->middleware('auth');
 
-    $descargasPorDia = DB::table('descargas')
-        ->select(DB::raw('fecha, COUNT(*) as total'))
-        ->where('fichero_id', $fichero->id)
-        ->groupBy('fecha')
-        ->orderBy('fecha')
-        ->get();
+// Actualización de archivos
+Route::put('/archivo/{id}', [FileController::class, 'update'])->name('archivo.update');
 
-    return view('archivo', [
-        'fichero' => $fichero,
-        'descargasPorDia' => $descargasPorDia,
-    ]);
-})->name('archivo.view');
-
-// Generar QR de descarga
-Route::get('/qr/download/{id}', function ($id) {
-    $fichero = Fichero::findOrFail($id);
-    if (!Storage::exists($fichero->path)) {
-        return redirect('/')->withErrors(['El archivo no está disponible para generar el QR.']);
-    }
-    $url = route('download', ['file' => $fichero->id]);
-    return QrCode::size(300)->generate($url);
-})->name('qr.download');
-
-// Restaurar archivo eliminado
-Route::get('/restore/{id}', function ($id) {
-    $fichero = Fichero::onlyTrashed()->findOrFail($id);
-    $fichero->restore(); // Restaura solo en la base de datos
-    return redirect('/')->with('status', 'Archivo restaurado correctamente.');
-})->name('restore');
-
-// Eliminar permanentemente archivo
-Route::get('/force-delete/{id}', function ($id) {
-    $fichero = Fichero::onlyTrashed()->findOrFail($id);
-
-    // Elimina el archivo físicamente si existe
-    if (Storage::exists($fichero->path)) {
-        Storage::delete($fichero->path);
-    }
-
-    $fichero->forceDelete(); // Elimina permanentemente la entrada en la base de datos
-    return redirect('/')->with('status', 'Archivo eliminado permanentemente.');
-})->name('force-delete');
 // Ver PDF
-Route::get('/ver-pdf/{id}', function ($id) {
-    $fichero = Fichero::findOrFail($id);
-
-    if ($fichero->privado && $fichero->user_id != Auth::id()) {
-        return redirect('/')->withErrors(['Archivo no encontrado o no tienes permisos para verlo.']);
-    }
-
-    $filePath = Storage::path($fichero->path);
-
-    if (!Storage::exists($fichero->path)) {
-        abort(404, 'El archivo no existe.');
-    }
-
-    return response()->file($filePath);
-})->name('ver.pdf');
+Route::get('/ver-pdf/{id}', [FileController::class, 'viewPdf'])->name('ver.pdf');
