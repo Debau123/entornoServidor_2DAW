@@ -45,7 +45,7 @@
                 @if (Storage::exists($fichero->path))
                     <img src="data:image/png;base64,{{ base64_encode(QrCode::format('png')->size(150)->generate(route('download', ['file' => $fichero->id]))) }}" alt="QR para descargar archivo">
                 @else
-                    <p>QR no disponible</p>
+                    <p>QR no    ,,,, disponible</p>
                 @endif
             </div>
         </div>
