@@ -125,7 +125,7 @@
                     <tbody>
                         @foreach($archivosCompartidos as $archivo)
                             <tr>
-                                <td><a href="/archivo/{{ $fichero->id }}">{{ $fichero->name }}</a></td>
+                                <td><a href="/archivo/{{ $archivo->id }}">{{ $archivo->name }}</a></td>
                                 <td>{{ $archivo->owner_name }}</td>
                                 <td>{{ $archivo->shared_at }}</td>
                                 <td>
@@ -148,32 +148,47 @@
 
             <!-- Archivos Eliminados -->
             <div class="tab-pane" id="archivos-eliminados" style="display: none;">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Deleted At</th>
-                            <th>Owner</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($archivosEliminados as $archivo)
+                @php
+                    $archivosEliminadosUsuario = $archivosEliminados->where('user_id', Auth::id());
+                @endphp
+
+                @if($archivosEliminadosUsuario->isNotEmpty())
+                    <table class="table table-bordered">
+                        <thead>
                             <tr>
-                                <td>{{ $archivo->name }}</td>
-                                <td>{{ $archivo->deleted_at }}</td>
-                                <td>{{ $archivo->user->name }}</td>
-                                <td>
-                                    <a href="/restore/{{ $archivo->id }}" class="btn btn-success">Restaurar</a>
-                                    <a href="/force-delete/{{ $archivo->id }}" class="btn btn-danger">Eliminar Permanentemente</a>
-                                </td>
+                                <th>Name</th>
+                                <th>Deleted At</th>
+                                <th>Owner</th>
+                                <th>Action</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            @foreach($archivosEliminadosUsuario as $archivo)
+                                <tr>
+                                    <td>{{ $archivo->name }}</td>
+                                    <td>{{ $archivo->deleted_at }}</td>
+                                    <td>{{ $archivo->user->name }}</td>
+                                    <td>
+                                        <a href="/restore/{{ $archivo->id }}" class="btn btn-success">Restaurar</a>
+                                        <a href="/force-delete/{{ $archivo->id }}" class="btn btn-danger">Eliminar Permanentemente</a>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @else
+                    <p>No tienes archivos eliminados.</p>
+                @endif
             </div>
         </div>
     </div>
+@endsection
+
+@section('footer')
+    <footer style="background-color: #333; color: white; text-align: center; padding: 10px; margin-top: auto;">
+        iñaki borrego bau 2024
+    </footer>
+@endsection
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -202,4 +217,3 @@
             });
         });
     </script>
-@endsection

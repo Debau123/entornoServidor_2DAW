@@ -163,17 +163,25 @@ class FileController extends Controller
     // Compartir archivo
     public function share(Request $request, $id)
     {
-        $fichero = Fichero::findOrFail($id);
-        $user = User::findOrFail($request->input('user_id'));
+    $fichero = Fichero::findOrFail($id);
+    $user = User::findOrFail($request->input('user_id'));
 
-        if ($user->id == Auth::id()) {
-            return redirect()->back()->withErrors(['No puedes compartir un archivo contigo mismo.']);
-        }
-
-        $fichero->sharedUsers()->attach($user->id);
-
-        return redirect()->back()->with('status', 'Archivo compartido exitosamente.');
+    // Verificar que no se comparta consigo mismo
+    if ($user->id == Auth::id()) {
+        return redirect()->back()->withErrors(['No puedes compartir un archivo contigo mismo.']);
     }
+
+    // Verificar si el archivo ya está compartido con este usuario
+    if ($fichero->sharedUsers()->where('user_id', $user->id)->exists()) {
+        return redirect()->back()->withErrors(['Este archivo ya está compartido con este usuario.']);
+    }
+
+    // Compartir el archivo con el usuario especificado
+    $fichero->sharedUsers()->attach($user->id);
+
+    return redirect()->back()->with('status', 'Archivo compartido exitosamente.');
+    }
+
 
     // Actualizar archivo
     public function update(Request $request, $id)

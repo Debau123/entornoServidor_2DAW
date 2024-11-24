@@ -8,7 +8,9 @@
 ├── app
 │   ├── Http
 │   │   ├── Controllers
-│   │   │   └── Controller.php
+│   │   │   ├── AuthController.php
+│   │   │   ├── Controller.php
+│   │   │   └── FileController.php
 │   │   └── Requests
 │   │       └── RegisterRequest.php
 │   ├── Models
@@ -52,10 +54,13 @@
 │   │   ├── 2024_11_04_142857_create_ficheroes_table.php
 │   │   ├── 2024_11_10_165959_add_privado_to_ficheroes_table.php
 │   │   ├── 2024_11_18_101318_add_descargas_to_ficheros_table.php
-│   │   └── 2024_11_18_103124_create_descargas_table.php
+│   │   ├── 2024_11_18_103124_create_descargas_table.php
+│   │   ├── 2024_11_18_134533_add_deleted_at_to_ficheroes_table.php
+│   │   └── 2024_11_19_201157_create_shared_files_table.php
 │   └── seeders
 │       └── DatabaseSeeder.php
 ├── docker-compose.yml
+├── documentacion_proyecto.md
 ├── estructura.txt
 ├── node_modules
 ├── package.json
@@ -71,7 +76,7 @@
 │   ├── favicon.ico
 │   ├── index.php
 │   ├── robots.txt
-│   └── storage -> /home/debau/a5-app/storage/app/public
+│   └── storage -> /var/www/html/storage/app/public
 ├── resources
 │   ├── css
 │   │   └── app.css
@@ -97,17 +102,13 @@
 │   │   ├── private
 │   │   │   ├── .gitignore
 │   │   │   ├── 0j9TwpUH4o6lMVyU9JY3BEeVHZU168iydps5jmS0.pdf
-│   │   │   ├── 4U6vZLvf6QuoHOWWQsSSPyytwOKxlme4cb1lFyVt.docx
 │   │   │   ├── 7DuwPoZzbxaQraGkFNIwhbfg652OWcsYfWNRYu0L.pdf
 │   │   │   ├── IFbvfNVxB5HKDJUOVQXraN9WkbBInPRgiLk6iZy0.pdf
 │   │   │   ├── WCTAT9IJKhJ04IEx44ZJ2otV3YiqOR6A4d9JiFJT.pdf
 │   │   │   ├── kQ2aBxTNGFWHm0ZtqsMYeLjS4m4dbOKOLBvnSGzP.pdf
 │   │   │   ├── public
-│   │   │   │   ├── 7XrisghA5x0GcyWXrtzAxAcEos0ifmIeTenQfWgJ.docx
-│   │   │   │   ├── Ejercicios_GRID.pdf
-│   │   │   │   ├── codigo_completo.txt
-│   │   │   │   ├── uploads
-│   │   │   │   └── z2BRfAQoY6h7HxgSfaie0UhjxEHLEjQtqyaiR3tg.pdf
+│   │   │   │   ├── 1clase.txt
+│   │   │   │   └── uploads
 │   │   │   └── yuocybLTIhxoJcc04K4ytnoB0k5jRxFVGlshw2jI.pdf
 │   │   └── public
 │   │       ├── .gitignore
@@ -126,7 +127,7 @@
 │   │   └── views
 │   │       ├── .gitignore
 │   │       ├── 09ee47cb6b2ead6fe59c09eda6d900b2.php
-│   │       ├── 132b834a0a58f1e712afb341f8622879.php
+│   │       ├── 113d58b5956848a1f63585797a750bbf.php
 │   │       ├── 13908c918157ccfc7c05c05195757833.php
 │   │       ├── 19d1ca22cd8db231f88e0685e9c3a20e.php
 │   │       ├── 275c7c02e2528e6029079c885e2d2418.php
@@ -10055,4 +10056,4 @@
 │               └── Mixin.php
 └── vite.config.js
 
-1377 directories, 8678 files
+1376 directories, 8680 files
