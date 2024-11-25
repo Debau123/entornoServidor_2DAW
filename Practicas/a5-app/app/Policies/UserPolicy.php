@@ -4,7 +4,7 @@ namespace App\Policies;
 
 use App\Models\User;
 
-class AdminPolicy
+class UserPolicy
 {
     /**
      * Determina si el usuario tiene acceso al panel de administración.

@@ -1,14 +1,15 @@
-<?php 
+<?php
 
 namespace App\Models;
 
+// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use App\Models\Role;
 
 class User extends Authenticatable
 {
+    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
     /**
@@ -20,7 +21,6 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role_id',
     ];
 
     /**
@@ -34,32 +34,15 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be cast.
+     * Get the attributes that should be cast.
      *
-     * @var array<string, string>
+     * @return array<string, string>
      */
-    protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
-    ];
-
-    /**
-     * Relationship with the Role model.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
-     */
-    public function role()
+    protected function casts(): array
     {
-        return $this->belongsTo(Role::class);
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
-
-    /**
-     * Check if the user is an admin.
-     *
-     * @return bool
-     */
-    public function isAdmin()
-    {
-        return $this->role?->name === 'admin'; // Verifica que el rol del usuario sea 'admin'
-    }
-}    
+}

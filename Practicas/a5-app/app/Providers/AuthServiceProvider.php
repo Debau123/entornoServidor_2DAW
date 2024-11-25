@@ -18,8 +18,11 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::define('view-admin-dashboard', function (User $user) {
+            dump('Evaluando Gate para:', $user->id);
+            dump('Es admin:', $user->isAdmin());
             return $user->isAdmin();
         });
+        
     }
 }
 

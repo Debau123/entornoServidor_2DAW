@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Models\User;
+use App\Policies\AdminPolicy;
+use App\Policies\UserPolicy;
 
 // Ruta principal con búsqueda de archivos
 Route::get('/', [FileController::class, 'index']);
@@ -55,7 +58,6 @@ Route::get('/ver-pdf/{id}', [FileController::class, 'viewPdf'])
     ->name('ver.pdf');
 
 // Panel de administración
-Route::middleware(['auth', 'can:accessAdminPanel'])->group(function () {
-    Route::get('/admin', [AdminController::class, 'dashboard'])
-        ->name('admin.dashboard');
-});
+Route::get('/admin/dashboard', [AdminController::class, 'dashboard'])
+->can('accessAdminPanel', User::class)
+->name('admin.dashboard');
