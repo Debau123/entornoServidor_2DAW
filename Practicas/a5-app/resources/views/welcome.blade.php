@@ -42,7 +42,7 @@
                             <tr>
                                 <td><a href="/archivo/{{ $fichero->id }}">{{ $fichero->name }}</a></td>
                                 <td>{{ $fichero->size() }}</td>
-                                <td>{{ $fichero->user->name }}</td>
+                                <td>{{ $fichero->user ? $fichero->user->name : 'Usuario eliminado' }}</td>
                                 <td>{{ $fichero->created_at }}</td>
                                 <td>{{ $fichero->updated_at }}</td>
                                 <td>
@@ -80,7 +80,7 @@
                             <tr>
                                 <td><a href="/archivo/{{ $fichero->id }}">{{ $fichero->name }}</a></td>
                                 <td>{{ $fichero->size() }}</td>
-                                <td>{{ $fichero->user->name }}</td>
+                                <td>{{ $fichero->user ? $fichero->user->name : 'Usuario eliminado' }}</td>
                                 <td>{{ $fichero->created_at }}</td>
                                 <td>{{ $fichero->updated_at }}</td>
                                 <td>
@@ -126,7 +126,7 @@
                         @foreach($archivosCompartidos as $archivo)
                             <tr>
                                 <td><a href="/archivo/{{ $archivo->id }}">{{ $archivo->name }}</a></td>
-                                <td>{{ $archivo->owner_name }}</td>
+                                <td>{{ $archivo->owner_name ?? 'Usuario eliminado' }}</td>
                                 <td>{{ $archivo->shared_at }}</td>
                                 <td>
                                     @if(Storage::exists($archivo->path))
@@ -167,7 +167,7 @@
                                 <tr>
                                     <td>{{ $archivo->name }}</td>
                                     <td>{{ $archivo->deleted_at }}</td>
-                                    <td>{{ $archivo->user->name }}</td>
+                                    <td>{{ $archivo->user ? $archivo->user->name : 'Usuario eliminado' }}</td>
                                     <td>
                                         <a href="/restore/{{ $archivo->id }}" class="btn btn-success">Restaurar</a>
                                         <a href="/force-delete/{{ $archivo->id }}" class="btn btn-danger">Eliminar Permanentemente</a>
@@ -190,30 +190,30 @@
     </footer>
 @endsection
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const tabs = {
-                'todos-archivos-tab': 'todos-archivos',
-                'mis-archivos-tab': 'mis-archivos',
-                'archivos-compartidos-tab': 'archivos-compartidos',
-                'archivos-eliminados-tab': 'archivos-eliminados',
-            };
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const tabs = {
+            'todos-archivos-tab': 'todos-archivos',
+            'mis-archivos-tab': 'mis-archivos',
+            'archivos-compartidos-tab': 'archivos-compartidos',
+            'archivos-eliminados-tab': 'archivos-eliminados',
+        };
 
-            Object.keys(tabs).forEach(tabId => {
-                const tab = document.getElementById(tabId);
-                tab.addEventListener('click', function () {
-                    Object.keys(tabs).forEach(otherTabId => {
-                        const otherTab = document.getElementById(otherTabId);
-                        const otherPane = document.getElementById(tabs[otherTabId]);
-                        if (tabId === otherTabId) {
-                            otherTab.classList.add('active');
-                            otherPane.style.display = 'block';
-                        } else {
-                            otherTab.classList.remove('active');
-                            otherPane.style.display = 'none';
-                        }
-                    });
+        Object.keys(tabs).forEach(tabId => {
+            const tab = document.getElementById(tabId);
+            tab.addEventListener('click', function () {
+                Object.keys(tabs).forEach(otherTabId => {
+                    const otherTab = document.getElementById(otherTabId);
+                    const otherPane = document.getElementById(tabs[otherTabId]);
+                    if (tabId === otherTabId) {
+                        otherTab.classList.add('active');
+                        otherPane.style.display = 'block';
+                    } else {
+                        otherTab.classList.remove('active');
+                        otherPane.style.display = 'none';
+                    }
                 });
             });
         });
-    </script>
+    });
+</script>
