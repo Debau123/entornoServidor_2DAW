@@ -3,7 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes; // Importar SoftDeletes
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
 class Fichero extends Model
@@ -32,12 +32,16 @@ class Fichero extends Model
     /**
      * Relación con los usuarios con los que se ha compartido el archivo.
      */
-   
     public function sharedUsers()
     {
-    return $this->belongsToMany(User::class, 'shared_files', 'fichero_id', 'user_id')->withTimestamps();
+        return $this->belongsToMany(User::class, 'shared_files', 'fichero_id', 'user_id')->withTimestamps();
     }
 
-
-
+    /**
+     * Relación con los votos asociados al fichero.
+     */
+    public function votes()
+    {
+        return $this->hasMany(Vote::class);
+    }
 }

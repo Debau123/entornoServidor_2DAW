@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FileController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\VoteController;
 use App\Models\User;
 use App\Policies\AdminPolicy;
 use App\Policies\UserPolicy;
@@ -75,3 +76,8 @@ Route::put('/admin/user/{id}', [AdminController::class, 'update'])->name('admin.
 Route::put('/admin/users', [AdminController::class, 'bulkUpdate'])->name('admin.user.bulkUpdate');
 
 Route::delete('/admin/file/{id}', [AdminController::class, 'destroyFile'])->name('admin.file.destroy');
+
+// routes/web.php
+Route::post('/fichero/{id}/like', [VoteController::class, 'like'])->name('fichero.like');
+Route::post('/fichero/{id}/dislike', [VoteController::class, 'dislike'])->name('fichero.dislike');
+

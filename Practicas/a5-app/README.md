@@ -1,137 +1,185 @@
 
-# Documentación del Proyecto Laravel
+# **Documentación del Proyecto de Gestión de Archivos**
 
-Este proyecto Laravel gestiona usuarios, archivos y estadísticas de descargas. Está estructurado con rutas, vistas, migraciones y funcionalidades personalizadas. A continuación, se describe cada componente con detalles técnicos y decisiones de diseño.
-
----
-
-## **Rutas (`routes/web.php`)**
-
-### 1. `/` (GET)
-- **Funcionalidad**: Muestra la página principal (`welcome.blade.php`) con una lista de archivos disponibles, permitiendo buscar por nombre.
-- **Tecnologías utilizadas**:
-  - **Eloquent ORM**: Para consultar la base de datos de archivos con filtros dinámicos.
-  - **Blade Templates**: Renderiza la vista `welcome` con los datos de los archivos.
-- **Por qué se eligió**: Eloquent simplifica las consultas y permite un código limpio con su funcionalidad `when()`.
+## **Descripción General**
+Este proyecto es una aplicación web desarrollada en Laravel que permite la gestión y compartición de archivos entre usuarios. Las funcionalidades incluyen subir archivos, compartirlos, eliminarlos, restaurarlos y votar por ellos (likes y dislikes). La aplicación cuenta con vistas categorizadas, un sistema de roles de usuario y un panel de administración.
 
 ---
 
-### 2. `/login` (GET/POST)
-- **GET**:
-  - Muestra el formulario de inicio de sesión.
-  - Utiliza la vista `login.blade.php`.
-- **POST**:
-  - Valida las credenciales del usuario y autentica su sesión usando `Auth::attempt`.
-- **Tecnologías utilizadas**:
-  - **Middleware de autenticación**: Laravel gestiona sesiones y cookies.
-  - **Form Request Validation**: Simplifica la validación de credenciales.
-- **Por qué se eligió**: Laravel Breeze fue la base inicial para la gestión de usuarios.
+## **Características Principales**
+1. **Gestión de Archivos**:
+   - Subida de archivos con opción de privacidad (público o privado).
+   - Descarga de archivos disponibles.
+   - Eliminación temporal (soft delete) y restauración de archivos.
+   - Compartición de archivos entre usuarios autenticados.
+
+2. **Sistema de Votación**:
+   - Votación positiva ("like") o negativa ("dislike") en archivos públicos.
+   - Control de votos únicos por usuario por archivo.
+
+3. **Sistema de Roles**:
+   - Roles de usuario (usuario estándar y administrador).
+   - Acceso limitado a funcionalidades administrativas según el rol.
+
+4. **Interfaz Categorizada**:
+   - Navegación por "Archivos de la comunidad", "Mis archivos", "Archivos compartidos" y "Archivos eliminados".
+   - Búsqueda de archivos por nombre.
+
+5. **Panel de Administración**:
+   - Gestión de usuarios y archivos (crear, editar, eliminar).
 
 ---
 
-### 3. `/logout` (GET)
-- **Funcionalidad**: Finaliza la sesión del usuario y regenera el token CSRF.
-- **Tecnologías utilizadas**:
-  - **Auth Facade**: Permite cerrar sesión de forma segura.
-- **Por qué se eligió**: Laravel gestiona la seguridad de las sesiones automáticamente.
+## **Rutas Disponibles**
+### **Rutas Públicas**
+- **`GET /`**: Página principal con lista de archivos públicos.
+- **`GET /login`**: Formulario de inicio de sesión.
+- **`POST /login`**: Procesa credenciales de inicio de sesión.
+- **`GET /register`**: Formulario de registro de usuario.
+- **`POST /register`**: Registra un nuevo usuario.
+
+### **Rutas Protegidas (Autenticación Requerida)**
+#### **Gestión de Archivos**
+- **`POST /upload`**: Subida de archivos.
+- **`GET /download/{file}`**: Descarga un archivo.
+- **`GET /delete/{file}`**: Elimina temporalmente un archivo.
+- **`GET /restore/{id}`**: Restaura un archivo eliminado.
+- **`GET /force-delete/{id}`**: Elimina permanentemente un archivo.
+
+#### **Votación en Archivos**
+- **`POST /fichero/{id}/like`**: Añade un voto positivo.
+- **`POST /fichero/{id}/dislike`**: Añade un voto negativo.
+
+#### **Archivos Compartidos**
+- **`POST /compartir/{id}`**: Comparte un archivo.
+- **`DELETE /eliminar-compartido/{id}`**: Elimina un archivo compartido.
+
+### **Rutas Administrativas**
+- **`GET /admin/dashboard`**: Acceso al panel administrativo.
+- **`DELETE /admin/file/{id}`**: Elimina un archivo de forma permanente.
+- **`DELETE /admin/user/{id}`**: Elimina un usuario.
+- **`PUT /admin/user/{id}`**: Actualiza los datos de un usuario.
 
 ---
 
-### 4. `/register` (GET/POST)
-- **GET**:
-  - Muestra el formulario de registro.
-- **POST**:
-  - Registra un nuevo usuario en la base de datos.
-  - Cifra la contraseña con `Hash::make`.
-- **Tecnologías utilizadas**:
-  - **Eloquent**: Facilita la creación de nuevos usuarios.
-  - **Request Validation**: Garantiza la validez de los datos de entrada.
-- **Por qué se eligió**: Laravel proporciona herramientas nativas para la gestión de usuarios.
+## **Vistas y Funcionalidades**
+
+### **Vista: Welcome**
+- Lista de archivos públicos (archivos de la comunidad).
+- Botones para descargar, votar y eliminar.
+- Fila adicional para mostrar votos positivos y negativos.
+
+### **Vista: Mis Archivos**
+- Archivos subidos por el usuario autenticado.
+- Funcionalidades: Descargar, eliminar y compartir.
+
+### **Vista: Archivos Compartidos**
+- Archivos que han sido compartidos con el usuario.
+- Funcionalidades: Descargar y eliminar compartición.
+
+### **Vista: Archivos Eliminados**
+- Archivos eliminados temporalmente.
+- Funcionalidades: Restaurar y eliminar permanentemente.
+
+### **Panel Administrativo**
+- Gestión completa de usuarios y archivos.
+- Acceso limitado a administradores.
 
 ---
 
-### 5. `/subir-archivos` (GET/POST)
-- **GET**:
-  - Muestra la vista `upload.blade.php` con un formulario para subir archivos.
-- **POST**:
-  - Sube archivos al directorio `public/storage` y los asocia al usuario autenticado.
-  - Sanitiza el nombre del archivo usando expresiones regulares.
-- **Tecnologías utilizadas**:
-  - **Storage Facade**: Gestiona la subida de archivos al sistema de almacenamiento.
-  - **Blade Templates**: Renderiza la vista.
-- **Por qué se eligió**: Laravel simplifica la gestión de archivos con el sistema de almacenamiento.
+## **Base de Datos**
+### **Estructura de Tablas**
+#### **Tabla `users`**
+- `id`: Identificador único.
+- `name`: Nombre del usuario.
+- `email`: Correo electrónico.
+- `password`: Contraseña (encriptada).
+- `role_id`: Rol del usuario.
+- `timestamps`: Fechas de creación y actualización.
+
+#### **Tabla `ficheros`**
+- `id`: Identificador único.
+- `name`: Nombre del archivo.
+- `path`: Ruta del archivo.
+- `user_id`: Propietario.
+- `privado`: Visibilidad (0 = público, 1 = privado).
+- `timestamps`: Fechas de creación y actualización.
+
+#### **Tabla `votes`**
+- `id`: Identificador único.
+- `fichero_id`: Relación con un archivo.
+- `user_id`: Relación con un usuario.
+- `like`: Tipo de voto (1 = like, 0 = dislike).
+- `timestamps`: Fechas de creación y actualización.
+
+#### **Tabla `shared_files`**
+- `id`: Identificador único.
+- `fichero_id`: Relación con un archivo compartido.
+- `user_id`: Usuario con quien se compartió.
+- `timestamps`: Fechas de creación y actualización.
 
 ---
 
-### 6. `/download/{file}` (GET)
-- **Funcionalidad**:
-  - Incrementa el contador de descargas en la tabla `ficheroes`.
-  - Registra cada descarga en la tabla `descargas` con la fecha.
-  - Descarga el archivo solicitado.
-- **Tecnologías utilizadas**:
-  - **Eloquent**: Incrementa el contador.
-  - **DB Facade**: Inserta datos en la tabla `descargas`.
-  - **Storage Facade**: Devuelve el archivo para descarga.
-- **Por qué se eligió**: Separar el registro de descargas en otra tabla permite analizar estadísticas fácilmente.
+## **Configuración del Proyecto**
+
+### **Instalación**
+1. Clonar el repositorio:
+   ```bash
+   git clone <repository-url>
+   cd <project-directory>
+   ```
+
+2. Instalar dependencias:
+   ```bash
+   composer install
+   npm install
+   ```
+
+3. Configurar `.env`:
+   - Configurar base de datos.
+   - Establecer claves de encriptación.
+
+4. Migrar la base de datos:
+   ```bash
+   php artisan migrate
+   ```
+
+5. Ejecutar el servidor:
+   ```bash
+   php artisan serve
+   ```
+
+### **Dependencias Principales**
+- Laravel Framework
+- MySQL
+- Blade (Motor de plantillas)
+- Bootstrap (Diseño Frontend)
+- Docker (Entorno de desarrollo)
 
 ---
 
-### 7. `/delete/{file}` (GET)
-- **Funcionalidad**:
-  - Elimina un archivo del sistema y su registro en la base de datos.
-- **Tecnologías utilizadas**:
-  - **Storage Facade**: Borra el archivo físico.
-  - **Eloquent**: Elimina el registro asociado en la tabla.
-- **Por qué se eligió**: Garantiza que no queden archivos huérfanos en el sistema.
+## **Pruebas y Debugging**
+- Ejecutar pruebas:
+  ```bash
+  php artisan test
+  ```
+- Ver registros de errores:
+  ```bash
+  tail -f storage/logs/laravel.log
+  ```
 
 ---
 
-### 8. `/archivo/{id}` (GET)
-- **Funcionalidad**:
-  - Muestra detalles del archivo, como el propietario, tamaño, estadísticas de descargas y un gráfico.
-  - Genera un QR para descargar el archivo.
-- **Tecnologías utilizadas**:
-  - **Chart.js**: Renderiza el gráfico de descargas por día.
-  - **QrCode**: Genera el QR dinámicamente.
-  - **Eloquent**: Consulta el archivo y las estadísticas asociadas.
-- **Por qué se eligió**: Estas herramientas simplifican la presentación de datos de forma visual y atractiva.
+## **Futuras Mejoras**
+1. Implementar notificaciones al compartir archivos.
+2. Crear un sistema de comentarios para los archivos.
+3. Ampliar el sistema de roles con permisos más específicos.
+4. Optimizar el diseño responsivo para dispositivos móviles.
 
 ---
 
-### 9. `/qr/download/{id}` (GET)
-- **Funcionalidad**: Genera un QR para descargar el archivo directamente.
-- **Tecnologías utilizadas**:
-  - **QrCode Package**: Genera el código QR.
-- **Por qué se eligió**: Ofrece una forma rápida de compartir el enlace de descarga.
+## **Autores**
+- **Iñaki Borrego Bau** (Desarrollador Principal)
+- **Framework Utilizado**: Laravel
 
 ---
-
-### 10. `/ver-pdf/{id}` (GET)
-- **Funcionalidad**:
-  - Muestra un archivo PDF incrustado en la vista.
-- **Tecnologías utilizadas**:
-  - **Storage Facade**: Gestiona la ruta del archivo.
-  - **Response Helper**: Devuelve el archivo como respuesta.
-- **Por qué se eligió**: Garantiza que el PDF sea visualizado directamente sin necesidad de descargarlo.
-
----
-
-## **Vistas**
-1. **`welcome.blade.php`**: Muestra la lista de archivos con un buscador dinámico.
-2. **`login.blade.php`**: Formulario de inicio de sesión.
-3. **`register.blade.php`**: Formulario de registro de nuevos usuarios.
-4. **`upload.blade.php`**: Formulario para subir archivos.
-5. **`archivo.blade.php`**: Vista detallada de un archivo con estadísticas de descargas.
-
----
-
-## **Migraciones**
-1. **`create_users_table`**: Define la tabla de usuarios con campos para nombre, correo y contraseña.
-2. **`create_ficheroes_table`**: Define la tabla de archivos, incluyendo campos como nombre, tamaño, ruta y contador de descargas.
-3. **`add_privado_to_ficheroes_table`**: Añade un campo para distinguir archivos privados de públicos.
-4. **`create_descargas_table`**: Registra cada descarga con el ID del archivo y la fecha.
-
----
-
-## **Conclusión**
-Este proyecto combina funcionalidades avanzadas de Laravel con herramientas adicionales como Chart.js y QrCode para gestionar archivos y estadísticas de forma eficiente y visual. El diseño modular permite futuras extensiones, como filtros avanzados o integración con APIs externas.
